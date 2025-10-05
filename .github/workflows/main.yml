@@ -1,7 +1,15 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   test:
+    runs-on: ubuntu-latest  # ✅ This line is required
     steps:
       - name: 23f3000339@ds.study.iitm.ac.in
+
         run: echo "Hello, world!"
-      
