@@ -1,23 +1,37 @@
-name: prime-cache-e9cc92c
+steps:
+  - name: Checkout code
+    uses: actions/checkout@v4
 
-on:
-  push:
-    branches: [ main ]
+  - name: Set up Python
+    uses: actions/setup-python@v5
+    with:
+      python-version: '3.x'
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+  # 1. Cache dependencies using the specified key
+  - name: Cache Pip Dependencies
+    id: cache
+    uses: actions/cache@v4
+    with:
+      # The path to cache (pip's cache directory)
+      path: ~/.cache/pip
+      # The required cache key for the priming run
+      key: cache-e9cc92c
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  # 2. Install dependencies (this will use the cache if it hits, or install/prime it if it misses)
+  # NOTE: A dummy 'requirements.txt' must exist in your repo for this step to succeed.
+  - name: Install Dependencies
+    run: |
+      # Create a dummy requirements file if it doesn't exist, just for the first run test
+      if [ ! -f requirements.txt ]; then echo "requests==2.31.0" > requirements.txt; fi
+      pip install -r requirements.txt
 
-      - name: Cache dependencies
-        id: cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: cache-e9cc92c
-
-      - name: prime-cache-e9cc92c
-        run: echo "Cache hit: ${{ steps.cache.outputs.cache-hit }}"
+  # 3. Echo the cache hit/miss result using the required step name
+  - name: prime-cache-e9cc92c
+    run: |
+      # steps.cache.outputs.cache-hit is 'true' or an empty string
+      if [ "${{ steps.cache.outputs.cache-hit }}" == "true" ]; then
+        echo "Cache Status: HIT 🎉"
+      else
+        echo "Cache Status: MISS (Cache will be primed on success) 💾"
+      fi
+      echo "Cache hit result: ${{ steps.cache.outputs.cache-hit }}"
